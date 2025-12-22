@@ -1,4 +1,5 @@
 import Category from '#models/category'
+import { createCategoryMessagesValidator, createCategoryValidator } from '#validators/category'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class CategoriesController {
@@ -13,8 +14,10 @@ export default class CategoriesController {
    * Handle form submission for the create action
    */
   async store({ request }: HttpContext) {
-    const data = request.all()
-    const category = Category.create(data)
+    const payload = await request.validateUsing(createCategoryValidator, {
+      messagesProvider: createCategoryMessagesValidator,
+    })
+    const category = await Category.create(payload)
     return category
   }
 
