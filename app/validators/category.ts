@@ -1,5 +1,5 @@
 import vine from '@vinejs/vine'
-import { validateMessageProvider } from './zh/formValidator.js'
+import { validateMessageProvider } from './zh/form_validator.js'
 
 /**
  * Validator to validate the payload when creating
