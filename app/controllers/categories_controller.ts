@@ -14,9 +14,10 @@ export default class CategoriesController {
    * Handle form submission for the create action
    */
   async store({ request }: HttpContext) {
-    const payload = await request.validateUsing(createCategoryValidator, {
-      messagesProvider: createCategoryMessagesValidator,
-    })
+    const payload = await request.validateUsing(
+      createCategoryValidator,
+      createCategoryMessagesValidator
+    )
     const category = await Category.create(payload)
     return category
   }
