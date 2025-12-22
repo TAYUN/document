@@ -1,5 +1,5 @@
-import vine, { SimpleMessagesProvider } from '@vinejs/vine'
-import { validateFields, validateMessage } from './zh/lang.js'
+import vine from '@vinejs/vine'
+import { validateMessageProvider } from './zh/formValidator.js'
 
 /**
  * Validator to validate the payload when creating
@@ -11,13 +11,9 @@ export const createCategoryValidator = vine.compile(
   })
 )
 
-export const createCategoryMessagesValidator = new SimpleMessagesProvider(
+export const createCategoryMessagesValidator = validateMessageProvider(
+  {},
   {
-    ...validateMessage,
-    maxLength: '{{ field }} 不能超过 {{ max }} 个字符!!!!!',
-  },
-  {
-    ...validateFields,
     title: '栏目名称',
   }
 )
