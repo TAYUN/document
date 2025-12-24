@@ -1,5 +1,5 @@
 import Category from '#models/category'
-import { createCategoryValidator } from '#validators/category'
+import { createCategoryValidator, updateCategoryValidator } from '#validators/category'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class CategoriesController {
@@ -22,15 +22,27 @@ export default class CategoriesController {
   /**
    * Show individual record
    */
-  async show({ params }: HttpContext) {}
+  async show({ params }: HttpContext) {
+    const category = await Category.findOrFail(params.id)
+    return category
+  }
 
   /**
    * Handle form submission for the edit action
    */
-  async update({ params, request }: HttpContext) {}
+  async update({ params, request }: HttpContext) {
+    const payload = await updateCategoryValidator.validate(request)
+    const category = await Category.findOrFail(params.id)
+    category.merge(payload)
+    await category.save()
+    return category
+  }
 
   /**
    * Delete record
    */
-  async destroy({ params }: HttpContext) {}
+  async destroy({ params }: HttpContext) {
+    const category = await Category.findOrFail(params.id)
+    await category.delete()
+  }
 }
