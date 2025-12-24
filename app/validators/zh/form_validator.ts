@@ -53,14 +53,19 @@ export const validateMessageProvider = (message = {}, fields = {}) => ({
 //     return request.validateUsing(validator, messageProvider)
 //   }
 // }
-
+// ReturnType<typeof validator.validate> 的问题 ：
+// 正如我之前提到的， validator.validate 返回的是 Promise<Data> 。如果你把它作为泛型 T 传给 FormValidator ，那么 validate 方法返回的 Promise<T> 就会变成 Promise<Promise<Data>> ，这通常是不对的。你需要提取 Promise 内部的类型。
 export class FormValidator<T extends Record<string, any>> {
   private validateMessage: Record<string, any> = {}
   private compile?: VineValidator<any, Record<string, any> | undefined>
   private validateFields: Record<string, any> = {}
   static rules<D extends Record<string, any>>(rules: D) {
-    const validator = vine.compile(vine.object(rules))
-    const instance = new FormValidator<ReturnType<typeof validator.validate>>()
+    const vineSchema = vine.object(rules)
+    const validator = vine.compile(vineSchema)
+
+    // 使用 Infer 推导出纯数据类型（不含 Promise）
+    type DataType = Infer<typeof vineSchema>
+    const instance = new FormValidator<DataType>()
     instance.compile = validator
     return instance
   }
@@ -76,6 +81,6 @@ export class FormValidator<T extends Record<string, any>> {
   async validate(request: Request): Promise<T> {
     const messageProvider = validateMessageProvider(this.validateMessage, this.validateFields)
     const result = request.validateUsing(this.compile!, messageProvider)
-    return result as T
+    return result
   }
 }
