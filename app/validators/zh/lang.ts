@@ -52,6 +52,7 @@ export const validateMessage = {
   // 自定义验证
   'unique': '{{field}} 已存在，请更换',
   'exists': '{{field}} 不存在',
+  'database.unique': '{{field}} 已存在，请更换',
 }
 
 export const validateFields = {
