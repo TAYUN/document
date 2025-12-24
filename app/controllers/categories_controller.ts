@@ -14,7 +14,7 @@ export default class CategoriesController {
    * Handle form submission for the create action
    */
   async store({ request }: HttpContext) {
-    const payload = await createCategoryValidator.validate(request)
+    const payload = await createCategoryValidator.validate({ request })
     const category = await Category.create(payload)
     return category
   }
@@ -31,7 +31,7 @@ export default class CategoriesController {
    * Handle form submission for the edit action
    */
   async update({ params, request }: HttpContext) {
-    const payload = await updateCategoryValidator.validate(request)
+    const payload = await updateCategoryValidator.validate({ request })
     const category = await Category.findOrFail(params.id)
     category.merge(payload)
     await category.save()

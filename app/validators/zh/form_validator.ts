@@ -1,7 +1,7 @@
-import vine, { SimpleMessagesProvider, VineValidator } from '@vinejs/vine'
-import { validateFields, validateMessage } from './lang.js'
-import type { Request } from '@adonisjs/core/http'
+import type { HttpContext } from '@adonisjs/core/http'
+import vine, { SimpleMessagesProvider } from '@vinejs/vine'
 import { Infer } from '@vinejs/vine/types'
+import { validateFields, validateMessage } from './lang.js'
 
 export const validateMessageProvider = (message = {}, fields = {}) => ({
   messagesProvider: new SimpleMessagesProvider(
@@ -55,17 +55,23 @@ export const validateMessageProvider = (message = {}, fields = {}) => ({
 // }
 // ReturnType<typeof validator.validate> 的问题 ：
 // 正如我之前提到的， validator.validate 返回的是 Promise<Data> 。如果你把它作为泛型 T 传给 FormValidator ，那么 validate 方法返回的 Promise<T> 就会变成 Promise<Promise<Data>> ，这通常是不对的。你需要提取 Promise 内部的类型。
-export class FormValidator<Output extends Record<string, any>> {
+
+type CtxType = Partial<Omit<HttpContext, 'request'>> & Pick<HttpContext, 'request'>
+export class FormValidator<T extends Record<string, any>> {
   private validateMessage: Record<string, any> = {}
   private validateFields: Record<string, any> = {}
 
-  constructor(private validator: VineValidator<any, Output>) {}
+  constructor(protected callback: (ctx: CtxType) => T) {}
 
-  static rules<Schema extends Record<string, any>>(rules: Schema) {
+  static rules<D extends Record<string, any>>(callback: (ctx: CtxType) => D) {
+    return new FormValidator(callback)
+  }
+
+  execute<Schema extends Record<string, any>>(rules: Schema) {
     const vineSchema = vine.object(rules)
     const validator = vine.compile(vineSchema)
-    type DataType = Infer<typeof vineSchema>
-    return new FormValidator<DataType>(validator)
+    // type DataType = Infer<typeof vineSchema>
+    return validator
   }
 
   message(message: Record<string, any>) {
@@ -78,9 +84,11 @@ export class FormValidator<Output extends Record<string, any>> {
     return this
   }
 
-  async validate(request: Request): Promise<Output> {
+  async validate(ctx: CtxType) {
+    const rules = this.callback(ctx)
+    const compile = this.execute(rules)
     const messageProvider = validateMessageProvider(this.validateMessage, this.validateFields)
-    const result = await request.validateUsing(this.validator, messageProvider as any)
-    return result
+    const result = await ctx.request!.validateUsing(compile, messageProvider as any)
+    return result as Infer<typeof compile>
   }
 }
