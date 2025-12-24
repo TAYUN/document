@@ -2,26 +2,25 @@ import vine from '@vinejs/vine'
 import { FormValidator } from './zh/form_validator.js'
 
 const rules = {
-  title: vine.string().trim().minLength(2).maxLength(10),
+  title: vine.string().trim().minLength(2).maxLength(5),
 }
 
-/**
- * Validator to validate the payload when creating
- * a new category.
- */
-// export const createCategoryValidator = formValidator({ ...rules }, {}, fields)
 export const createCategoryValidator = FormValidator.rules(rules).fields({
   title: '栏目名称@@@@@',
 })
 
-/**
- * Validator to validate the payload when updating
- * an existing category.
- */
-// export const updateCategoryValidator = formValidator(
-//   {
-//     ...rules,
-//   },
-//   {},
-//   fields
-// )
+export const updateCategoryValidator = FormValidator.rules({
+  title: vine
+    .string()
+    .trim()
+    .minLength(2)
+    .maxLength(5)
+    .unique(async (db, value, field) => {
+      const category = await db
+        .from('categories')
+        .where('title', value)
+        .whereNot('id', field.data.params.id)
+        .first()
+      return !category
+    }),
+})
