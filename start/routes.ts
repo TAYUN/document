@@ -17,7 +17,7 @@ router.get('/', async () => 'welcome')
 router
   .resource('category', CategoriesController)
   .apiOnly()
-  .use(['store', 'update', 'destroy'], middleware.auth())
+  .use(['store', 'update', 'destroy'], middleware.admin())
 
 router
   .group(() => {
