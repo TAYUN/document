@@ -42,7 +42,11 @@ export const registerValidator = FormValidator.rules(() => ({
       const user = await User.query().where('name', value).first()
       return !user
     }),
-  password: vine.string().minLength(6).maxLength(20).confirmed(),
+  password: vine
+    .string()
+    .minLength(6)
+    .maxLength(20)
+    .confirmed({ confirmationField: 'passwordConfirmation' }),
 }))
   .fields({ name: '用户名' })
   .message({ 'name.database.unique': '用户名已存在' })
